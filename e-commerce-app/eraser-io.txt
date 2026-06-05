@@ -1,0 +1,170 @@
+Clients {
+  Web [icon: web]
+  Client [icon: mobile]
+}
+
+BI User [icon: user]
+Data Scientist [icon: User]
+SRE [icon: user, label: "SRE / DevOps Engineer"]
+
+Certificate Manager [icon: aws-certificate-manager]
+DNS [icon: aws-route-53]
+CDN [icon: aws-cloudfront]
+WAF [icon: aws-waf]
+DDOS Protection [icon: aws-shield]
+
+
+External Services [icon: web]
+
+User Management [icon: aws-cognito]
+
+Notifications {
+  SNS [icon: aws-sns]
+  SES [icon: aws-ses]
+
+}
+
+VPC [icon: aws-vpc] {
+  Public Subnets Tier [icon: aws-public-subnet, label: "DMZ"] {
+      LoadBalancer [icon: aws-alb]
+      API GW [icon: aws-api-gateway]
+  }
+
+  Private Subnets Tier [icon: aws-private-subnet, label: "Application"] {
+    Container Services [icon: aws-ecs] {
+      Search Service [icon: container]
+      Product Service [icon: container]
+      Cart Service [icon: container]
+      Order Service [icon: container]
+  }
+
+    Workflows [icon: aws-step-functions]{
+      Inventory [icon: aws-lambda]
+      Shopping [icon: aws-lambda]
+      Notification [icon: aws-lambda]
+    }
+
+    Event Bus [icon: aws-eventbridge]
+
+    Auto Scaling Group [icon: aws-auto-scaling-group]{
+      Web Servers [icon: server, color: red] {
+        Worker1 [icon: aws-ec2]
+        Worker2 [icon: aws-ec2]
+        Worker3 [icon: aws-ec2]
+      }
+    }
+  }
+
+  Data Subnets Tier [icon: aws-private-subnet, label: "Isolated Data Subnet"] {
+    Databases [icon: database]{
+      Cashe [icon: aws-elasticache]
+      NoSQL DB [icon: aws-dynamodb]
+      SQL DB [icon: aws-rds]
+    }
+
+    Search {
+      Data Ingestion [icon: aws-kinesis]
+      Data Dumping [icon: aws-kinesis-firehose]
+      Search Engine [icon: aws-opensearch-service]
+      Event Driven [icon: aws-lambda]
+    }
+  }
+
+  PCI Isolated Subnet Tier [label: "PCI-DSS Scoped Subnet"] {
+    Payment Service [icon: container]
+    Internal ALB [icon: aws-alb, label: "Payment Internal LoadBalancer"]
+    Secrets Manager Endpoint [icon: aws-vpc, label: "VPC Endpoint: Secrets Manager"]
+    Payment Processor Endpoint [icon: aws-vpc, label: "VPC Endpoint: Processor"]
+  }
+
+  Data Analytics Subnet [icon: aws-public-subnet, label: "Data Analutics Subnet"] {
+    Analytics Data Collection{
+      Users & Orders [icon: aws-s3]
+      ETL [icon: aws-glue]
+      Analytics Data [icon: aws-s3]
+    }
+  }
+}
+
+
+Data Analytics {
+  Dashboard [icon: aws-quicksight]
+  Data Warehouse [icon: aws-redshift]
+}
+
+Observability {
+  CloudWatch [icon: aws-cloudwatch]
+  X Ray [icon: aws-xray, label: "AWS X-Ray (Distributed Tracing)"]
+}
+
+LoadBalancer -> Worker1
+LoadBalancer -> Worker2
+LoadBalancer -> Worker3
+
+API GW -> Search Service
+API GW -> Product Service
+API GW -> Cart Service
+API GW -> Order Service
+
+Order Service -> Workflows
+
+Clients -> DNS [label: Resolve Domain Name to IP address]
+DNS -> Clients
+
+Clients -> DDOS Protection -> WAF -> CDN
+CDN -> LoadBalancer 
+CDN -> API GW
+
+Certificate Manager [label: TLS Termination] -> CDN
+CDN -> Certificate Manager 
+
+Clients -> User Management [label: Authentication/Authorization]
+User Management -> Clients
+
+Notification -> Notifications -> Clients
+
+Web Servers -> Cashe
+Cashe -> Web Servers
+
+Web Servers -> Data Ingestion -> Data Dumping -> Search Engine
+
+NoSQL DB -> Product Service
+Product Service -> NoSQL DB
+NoSQL DB -> Cart Service
+Cart Service -> NoSQL DB
+
+SQL DB -> Order Service 
+Order Service -> SQL DB
+
+Search Service -> Search Engine 
+NoSQL DB -> Event Driven [label: stream] -> Search Engine
+
+NoSQL DB -> ETL 
+SQL DB -> ETL 
+ETL -> Users & Orders -> Dashboard
+ETL -> Analytics Data -> Data Warehouse -> Dashboard
+
+BI User -> Dashboard
+Data Scientist -> Data Warehouse
+
+Workflows -> Event Bus -> External Services
+
+API GW -> Internal ALB [label: "Private TLS Traffic"]
+
+Internal ALB -> Payment Service
+Payment Service -> Secrets Manager Endpoint [label: "Fetch API Keys privately"]
+Payment Service -> Payment Processor Endpoint [label: "PrivateLink to Bank/Processor"]
+
+Payment Service -> SQL DB [label: "Secure Private DB Channel"]
+Order Service -> SQL DB
+
+Container Services -> CloudWatch [label: "Container Logs & Metrics"]
+Container Services -> X Ray [label: "Distributed Traces"]
+Workflows -> CloudWatch [label: "Execution Metrics"]
+
+CloudWatch -> CloudWatch [label: "Triggers Alarm on Threshold Breach"]
+CloudWatch -> SNS [label: "Publish Alert Event"]
+SNS -> SRE [label: "PagerDuty / Email Notification"]
+
+SRE -> CloudWatch [label: "Analyze Metrics & Log Insights"]
+SRE -> X Ray [label: "Debug Microservice Latency/Bottlenecks"]
